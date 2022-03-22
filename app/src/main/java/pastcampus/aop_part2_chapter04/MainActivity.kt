@@ -10,7 +10,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
     }
 
-    fun buttonClicked(v : View){
+    fun buttonClicked(v: View) {
+
+    }
+
+    fun resultButtonClicked(v: View) {
+
+    }
+
+    fun historyButtonClicked(v: View) {
+
+    }
+
+    fun clearButtonClicked(v: View) {
 
     }
 }
