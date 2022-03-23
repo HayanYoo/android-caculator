@@ -8,6 +8,7 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import java.lang.NumberFormatException
 
 class MainActivity : AppCompatActivity() {
 
@@ -67,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         expressionTextView.append(number)
-
+        resultTextView.text = calculateExpression()
         // TODO resultTextView 실시간으로 계산 결과를 넣어야 하는 기능
     }
 
@@ -108,11 +109,44 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun calculateExpression() : String {
+        val expressionTexts = expressionTextView.text.split(" ")
+
+        if(!hasOperator || expressionTexts.size != 3) {
+            return ""
+        } else if (!expressionTexts[0].isNumber() || !expressionTexts[2].isNumber()){
+            return ""
+        }
+        val exp1 = expressionTexts[0].toBigInteger()
+        val exp2 = expressionTexts[2].toBigInteger()
+        val op = expressionTexts[1]
+
+        return when(op){
+            "+" -> (exp1 + exp2).toString()
+            "-" -> (exp1 - exp2).toString()
+            "x" -> (exp1 * exp2).toString()
+            "/" -> (exp1 / exp2).toString()
+            "%" -> (exp1 % exp2).toString()
+            else -> ""
+        }
+    }
+
+
     fun clearButtonClicked(v: View) {
 
     }
 
     fun historyButtonClicked(v: View) {
 
+    }
+}
+
+
+fun String.isNumber() : Boolean {
+    return try {
+        this.toBigInteger()
+        return true
+    } catch (e : NumberFormatException) {
+        return false
     }
 }
