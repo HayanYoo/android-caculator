@@ -5,10 +5,14 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
+import androidx.room.Room
+import pastcampus.aop_part2_chapter04.model.History
 import java.lang.NumberFormatException
 
 class MainActivity : AppCompatActivity() {
@@ -24,9 +28,11 @@ class MainActivity : AppCompatActivity() {
     private val historyLayout: View by lazy {
         findViewById<View>(R.id.historyLayout)
     }
-    private val historyLinearLayout: View by lazy {
-        findViewById<View>(R.id.historyLinearLayout)
+    private val historyLinearLayout: LinearLayout by lazy {
+        findViewById<LinearLayout>(R.id.historyLinearLayout)
     }
+
+    lateinit var db : AppDatabase
 
     private var isOperator = false
     private var hasOperator = false
@@ -34,6 +40,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "historyDB"
+        ).build()
     }
 
     fun buttonClicked(v: View) {
@@ -77,7 +89,6 @@ class MainActivity : AppCompatActivity() {
 
         expressionTextView.append(number)
         resultTextView.text = calculateExpression()
-        // TODO resultTextView 실시간으로 계산 결과를 넣어야 하는 기능
     }
 
     private fun operatorButtonClicked(operator: String) {
@@ -133,6 +144,14 @@ class MainActivity : AppCompatActivity() {
         val expressionText = expressionTextView.text.toString()
         val resultText = calculateExpression()
 
+
+        // DB작업은 메인쓰레드 X, 서브 쓰레드에서 작업 해야함.
+        Thread(Runnable {
+            db.historyDao().insertHistory(History(null, expressionText, resultText))
+        }).start()
+
+
+
         resultTextView.text = ""
         expressionTextView.text = resultText
 
@@ -172,6 +191,23 @@ class MainActivity : AppCompatActivity() {
 
     fun historyButtonClicked(v: View) {
         historyLayout.isVisible = true
+        // historyLinearLayout 아래의 모든 View 삭제
+        historyLinearLayout.removeAllViews()
+
+
+        Thread(Runnable {
+            db.historyDao().getAll().reversed().forEach{
+                runOnUiThread { // UI 작업은 mainTread 에서만 가능하기때문에 mainTread 호출
+
+                    val historyView = LayoutInflater.from(this).inflate(R.layout.history_row, null, false)
+                    historyView.findViewById<TextView>(R.id.expressionTextView).text = it.expression
+                    historyView.findViewById<TextView>(R.id.resultTextView).text = "= ${it.result}"
+
+                    historyLinearLayout.addView(historyView)
+
+                }
+            }
+        }).start()
 
     }
 
@@ -180,7 +216,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun historyClearButtonClicked(v: View) {
+        historyLinearLayout.removeAllViews()
 
+        Thread(Runnable {
+            db.historyDao().deleteAll()
+        }).start()
     }
 
 }
