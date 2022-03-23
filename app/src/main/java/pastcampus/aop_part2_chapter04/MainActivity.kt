@@ -8,6 +8,7 @@ import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.isVisible
 import java.lang.NumberFormatException
 
 class MainActivity : AppCompatActivity() {
@@ -18,6 +19,13 @@ class MainActivity : AppCompatActivity() {
 
     private val resultTextView: TextView by lazy {
         findViewById<TextView>(R.id.resultTextView)
+    }
+
+    private val historyLayout: View by lazy {
+        findViewById<View>(R.id.historyLayout)
+    }
+    private val historyLinearLayout: View by lazy {
+        findViewById<View>(R.id.historyLinearLayout)
     }
 
     private var isOperator = false
@@ -108,16 +116,16 @@ class MainActivity : AppCompatActivity() {
     fun resultButtonClicked(v: View) {
         val expressionTexts = expressionTextView.text.split(" ")
 
-        if(expressionTextView.text.isEmpty() || expressionTexts.size == 1) {
+        if (expressionTextView.text.isEmpty() || expressionTexts.size == 1) {
             return
         }
 
-        if(expressionTexts.size != 3 && hasOperator) {
+        if (expressionTexts.size != 3 && hasOperator) {
             Toast.makeText(this, "아직 완성되지 않은 수식입니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (!expressionTexts[0].isNumber() || !expressionTexts[2].isNumber()){
+        if (!expressionTexts[0].isNumber() || !expressionTexts[2].isNumber()) {
             Toast.makeText(this, "오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -132,19 +140,19 @@ class MainActivity : AppCompatActivity() {
         hasOperator = false
     }
 
-    private fun calculateExpression() : String {
+    private fun calculateExpression(): String {
         val expressionTexts = expressionTextView.text.split(" ")
 
-        if(!hasOperator || expressionTexts.size != 3) {
+        if (!hasOperator || expressionTexts.size != 3) {
             return ""
-        } else if (!expressionTexts[0].isNumber() || !expressionTexts[2].isNumber()){
+        } else if (!expressionTexts[0].isNumber() || !expressionTexts[2].isNumber()) {
             return ""
         }
         val exp1 = expressionTexts[0].toBigInteger()
         val exp2 = expressionTexts[2].toBigInteger()
         val op = expressionTexts[1]
 
-        return when(op){
+        return when (op) {
             "+" -> (exp1 + exp2).toString()
             "-" -> (exp1 - exp2).toString()
             "x" -> (exp1 * exp2).toString()
@@ -163,16 +171,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun historyButtonClicked(v: View) {
+        historyLayout.isVisible = true
 
     }
+
+    fun closeHistoryButtonClicked(v: View) {
+        historyLayout.isVisible = false
+    }
+
+    fun historyClearButtonClicked(v: View) {
+
+    }
+
 }
 
 
-fun String.isNumber() : Boolean {
+fun String.isNumber(): Boolean {
     return try {
         this.toBigInteger()
-        return true
-    } catch (e : NumberFormatException) {
-        return false
+        true
+    } catch (e: NumberFormatException) {
+        false
     }
 }
